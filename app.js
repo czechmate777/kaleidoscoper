@@ -1,214 +1,215 @@
-// Check if service workers are supported by the browser
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-            .then((registration) => {
-                console.log('Service Worker registered successfully with scope: ', registration.scope);
-            })
-            .catch((error) => {
-                console.log('Service Worker registration failed: ', error);
-            });
-    });
+/**
+ * Kaleidoscope Studio - Main Application Script
+ */
+
+// --- 1. Application State & Configuration ---
+const state = {
+    isDrawing: false,
+    lastX: 0,
+    lastY: 0,
+    segments: 8,
+    isMirrored: true,
+    strokeColor: '#00e5ff',
+    lineWidth: 3,
+    undoStack: [],
+    maxUndoSteps: 6,
+    backgroundColor: '#121212'
+};
+
+// --- 2. DOM Elements Cache ---
+const elements = {
+    canvas: document.getElementById('drawCanvas'),
+    undoBtn: document.getElementById('undoBtn'),
+    clearBtn: document.getElementById('clearBtn'),
+    segmentSlider: document.getElementById('segmentSlider'),
+    segmentCount: document.getElementById('segmentCount'),
+    thicknessSlider: document.getElementById('thicknessSlider'),
+    thicknessValue: document.getElementById('thicknessValue'),
+    mirrorToggle: document.getElementById('mirrorToggle'),
+    swatches: document.querySelectorAll('.swatch'),
+    openColorPickerBtn: document.getElementById('openColorPicker')
+};
+
+const ctx = elements.canvas.getContext('2d');
+
+// --- 3. Initialization ---
+function initApp() {
+    registerServiceWorker();
+    resizeCanvas();
+    clearCanvas(false); // Initial clear to set the background (without saving to undo stack)
+    bindEvents();
 }
 
+function registerServiceWorker() {
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js')
+                .then(reg => console.log('Service Worker registered successfully with scope:', reg.scope))
+                .catch(err => console.error('Service Worker registration failed:', err));
+        });
+    }
+}
 
-
-const canvas = document.getElementById('drawCanvas');
-const ctx = canvas.getContext('2d');
-
-// Default App State
-let isDrawing = false;
-let lastX = 0;
-let lastY = 0;
-
-// Kaleidoscope Configurations
-let segments = 8;        // Number of radial sections
-let isMirrored = true;   // Toggle for kaleidoscope mirroring
-let strokeColor = '#00e5ff'; // Default swatch color
-let lineWidth = 3;
-
-// Resize canvas to fill the screen
+// --- 4. Canvas & Drawing Logic ---
 function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    // Set a dark background immediately
-    ctx.fillStyle = '#121212';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    elements.canvas.width = window.innerWidth;
+    elements.canvas.height = window.innerHeight;
+    // Re-apply background after a resize
+    ctx.fillStyle = state.backgroundColor;
+    ctx.fillRect(0, 0, elements.canvas.width, elements.canvas.height);
 }
-
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas(); // Call once on load
-
-const maxUndoSteps = 6;
-let undoStack = [];
-
-function saveState() {
-    // If we exceed our limit, remove the oldest state at the beginning of the array
-    if (undoStack.length >= maxUndoSteps) {
-        undoStack.shift(); 
-    }
-    // Save the current canvas as a base64 image string
-    undoStack.push(canvas.toDataURL());
-}
-
-function undo() {
-    console.log('undoing...');
-    if (undoStack.length > 0) {
-        let prevState = undoStack.pop();
-        let img = new Image();
-        img.onload = () => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(img, 0, 0);
-        };
-        img.src = prevState;
-    } else {
-        // If the stack is empty, revert to the blank dark background
-        ctx.fillStyle = '#121212';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-    }
-}
-
-canvas.addEventListener('pointerdown', startDrawing);
-canvas.addEventListener('pointermove', draw);
-canvas.addEventListener('pointerup', stopDrawing);
-canvas.addEventListener('pointerout', stopDrawing);
 
 function getCoordinates(e) {
-    const rect = canvas.getBoundingClientRect();
+    const rect = elements.canvas.getBoundingClientRect();
     return [e.clientX - rect.left, e.clientY - rect.top];
 }
 
 function startDrawing(e) {
-    isDrawing = true;
-    saveState(); // Save the canvas state before altering it
-    [lastX, lastY] = getCoordinates(e);
+    state.isDrawing = true;
+    saveState();
+    [state.lastX, state.lastY] = getCoordinates(e);
 }
 
 function stopDrawing() {
-    isDrawing = false;
+    state.isDrawing = false;
 }
 
 function draw(e) {
-    if (!isDrawing) return;
+    if (!state.isDrawing) return;
     const [currentX, currentY] = getCoordinates(e);
 
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
-    const angleStep = (Math.PI * 2) / segments;
+    const centerX = elements.canvas.width / 2;
+    const centerY = elements.canvas.height / 2;
+    const angleStep = (Math.PI * 2) / state.segments;
 
-    // Loop through each slice of the kaleidoscope
-    for (let i = 0; i < segments; i++) {
+    // Render loop for kaleidoscope segments
+    for (let i = 0; i < state.segments; i++) {
         ctx.save();
-        
-        // Move the origin point to the center of the screen
         ctx.translate(centerX, centerY);
-        
-        // Rotate the canvas for this specific segment
         ctx.rotate(i * angleStep);
 
-        // Draw the standard stroke
-        drawLine(lastX - centerX, lastY - centerY, currentX - centerX, currentY - centerY);
+        // Draw standard stroke
+        drawLine(state.lastX - centerX, state.lastY - centerY, currentX - centerX, currentY - centerY);
 
-        // If mirroring is turned on, flip the canvas and draw the reflection
-        if (isMirrored) {
+        // Draw mirrored stroke if enabled
+        if (state.isMirrored) {
             ctx.scale(1, -1);
-            drawLine(lastX - centerX, lastY - centerY, currentX - centerX, currentY - centerY);
+            drawLine(state.lastX - centerX, state.lastY - centerY, currentX - centerX, currentY - centerY);
         }
 
         ctx.restore();
     }
 
-    // Update the last position to the current position for the next frame
-    [lastX, lastY] = [currentX, currentY];
+    [state.lastX, state.lastY] = [currentX, currentY];
 }
 
-// Bind the Thickness Slider
-const thicknessSlider = document.getElementById('thicknessSlider');
-const thicknessValue = document.getElementById('thicknessValue');
-
-thicknessSlider.addEventListener('input', (e) => {
-    lineWidth = parseInt(e.target.value, 10);
-    thicknessValue.innerText = lineWidth; // Updates the text label live
-});
-
-// Helper function to handle the actual stroke rendering
 function drawLine(x1, y1, x2, y2) {
     ctx.beginPath();
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
-    ctx.strokeStyle = strokeColor;
-    ctx.lineWidth = lineWidth;
+    ctx.strokeStyle = state.strokeColor;
+    ctx.lineWidth = state.lineWidth;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.stroke();
 }
 
-
-// Bind the Undo Button
-document.getElementById('undoBtn').addEventListener('click', undo);
-
-// Bind the Clear Button
-function clearCanvas() {
-    console.log("CLEAR!");
-    saveState(); // Save the current canvas state before clearing it
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#121212';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+// --- 5. State Management (Undo & Clear) ---
+function saveState() {
+    if (state.undoStack.length >= state.maxUndoSteps) {
+        state.undoStack.shift(); 
+    }
+    state.undoStack.push(elements.canvas.toDataURL());
 }
 
-document.getElementById('clearBtn').addEventListener('click', clearCanvas);
+function undo() {
+    if (state.undoStack.length > 0) {
+        const prevState = state.undoStack.pop();
+        const img = new Image();
+        img.onload = () => {
+            ctx.clearRect(0, 0, elements.canvas.width, elements.canvas.height);
+            ctx.drawImage(img, 0, 0);
+        };
+        img.src = prevState;
+    } else {
+        clearCanvas(false);
+    }
+}
 
-// Bind the Segments Slider
-const segmentSlider = document.getElementById('segmentSlider');
-const segmentCount = document.getElementById('segmentCount');
+function clearCanvas(saveToHistory = true) {
+    if (saveToHistory) saveState();
+    ctx.clearRect(0, 0, elements.canvas.width, elements.canvas.height);
+    ctx.fillStyle = state.backgroundColor;
+    ctx.fillRect(0, 0, elements.canvas.width, elements.canvas.height);
+}
 
-segmentSlider.addEventListener('input', (e) => {
-    segments = parseInt(e.target.value, 10);
-    segmentCount.innerText = segments; // Updates the text label live
-});
+// --- 6. Event Bindings ---
+function bindEvents() {
+    // Window Resize
+    window.addEventListener('resize', resizeCanvas);
 
-// Bind the Mirror Toggle
-document.getElementById('mirrorToggle').addEventListener('change', (e) => {
-    isMirrored = e.target.checked;
-});
+    // Canvas Pointer Events
+    elements.canvas.addEventListener('pointerdown', startDrawing);
+    elements.canvas.addEventListener('pointermove', draw);
+    elements.canvas.addEventListener('pointerup', stopDrawing);
+    elements.canvas.addEventListener('pointerout', stopDrawing);
 
-// Bind the Color Swatches
-document.querySelectorAll('.swatch').forEach(swatch => {
-    swatch.addEventListener('click', (e) => {
-        strokeColor = e.target.getAttribute('data-color');
-        
-        // Optional: Highlight the selected swatch
-        document.querySelectorAll('.swatch').forEach(s => s.style.borderColor = '#555');
-        e.target.style.borderColor = '#fff';
-    });
-});
+    // UI Buttons
+    elements.undoBtn?.addEventListener('click', undo);
+    elements.clearBtn?.addEventListener('click', () => clearCanvas(true));
 
-// Bind the Open Color Picker Button
-const openColorPickerBtn = document.getElementById('openColorPicker');
-const colorPicker = document.createElement('input');
-colorPicker.type = 'color';
-
-openColorPickerBtn.addEventListener('click', (e) => {
-    e.stopPropagation(); // Prevents triggering any parent button events
-    const rect = openColorPickerBtn.getBoundingClientRect();
-    colorPicker.style.position = 'absolute';
-    colorPicker.style.left = `${rect.left}px`;
-    colorPicker.style.top = `${rect.bottom}px`;
-    document.body.appendChild(colorPicker);
-    colorPicker.click();
-
-    colorPicker.addEventListener('input', () => {
-        strokeColor = colorPicker.value;
-        
-        // Optional: Highlight the selected swatch
-        document.querySelectorAll('.swatch').forEach(s => s.style.borderColor = '#555');
-        const selectedSwatch = document.querySelector(`.swatch[data-color="\${strokeColor}"]`);
-        if (selectedSwatch) {
-            selectedSwatch.style.borderColor = '#fff';
-        }
+    // UI Sliders & Toggles
+    elements.segmentSlider?.addEventListener('input', (e) => {
+        state.segments = parseInt(e.target.value, 10);
+        if (elements.segmentCount) elements.segmentCount.innerText = state.segments;
     });
 
-    colorPicker.addEventListener('blur', () => {
-        document.body.removeChild(colorPicker);
+    elements.thicknessSlider?.addEventListener('input', (e) => {
+        state.lineWidth = parseInt(e.target.value, 10);
+        if (elements.thicknessValue) elements.thicknessValue.innerText = state.lineWidth;
     });
-});
+
+    elements.mirrorToggle?.addEventListener('change', (e) => {
+        state.isMirrored = e.target.checked;
+    });
+
+    // Preset Color Swatches
+    elements.swatches.forEach(swatch => {
+        swatch.addEventListener('click', (e) => {
+            state.strokeColor = e.target.getAttribute('data-color');
+            updateActiveSwatch(e.target);
+        });
+    });
+
+    // Dynamic Color Picker setup
+    if (elements.openColorPickerBtn) {
+        // Create a hidden input instead of appending/removing constantly
+        const hiddenColorInput = document.createElement('input');
+        hiddenColorInput.type = 'color';
+        hiddenColorInput.style.display = 'none';
+        document.body.appendChild(hiddenColorInput);
+
+        elements.openColorPickerBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            hiddenColorInput.click(); // Trigger the native color picker
+        });
+
+        hiddenColorInput.addEventListener('input', (e) => {
+            state.strokeColor = e.target.value;
+            // Find and highlight a matching swatch if it exists
+            const matchingSwatch = document.querySelector(`.swatch[data-color="${state.strokeColor}"]`);
+            updateActiveSwatch(matchingSwatch);
+        });
+    }
+}
+
+// Helper to manage visual states of swatches
+function updateActiveSwatch(activeElement) {
+    elements.swatches.forEach(s => s.style.borderColor = '#555');
+    if (activeElement) {
+        activeElement.style.borderColor = '#fff';
+    }
+}
+
+// --- 7. Boot the Application ---
+initApp();
