@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+    <link rel="manifest" href="/manifest.json">
+
+    <meta name="theme-color" content="#00e5ff">
+
+    <title>Kaleidoscope Studio</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="controls">
+        <button id="undoBtn">Undo</button>
+        <button id="clearBtn">Clear</button>
+
+        <div class="control-group">
+            <label for="segmentSlider">Segments: <span id="segmentCount">8</span></label>
+            <input type="range" id="segmentSlider" min="2" max="24" value="8" step="2">
+        </div>
+
+        <div class="control-group">
+            <label>
+                <input type="checkbox" id="mirrorToggle" checked>
+                Mirror
+            </label>
+        </div>
+
+        <div class="control-group">
+            <label for="thicknessSlider">Thickness: <span id="thicknessValue">3</span></label>
+            <input type="range" id="thicknessSlider" min="1" max="20" value="3" step="1">
+        </div>
+
+        <div class="color-picker">
+            <button class="swatch" data-color="#00e5ff" style="background: #00e5ff;"></button>
+            <button class="swatch" data-color="#ff0055" style="background: #ff0055;"></button>
+            <button class="swatch" data-color="#ffaa00" style="background: #ffaa00;"></button>
+            <button class="swatch" data-color="#ffffff" style="background: #ffffff;"></button>
+        </div>
+
+        <button id="openColorPicker">Choose Color</button>
+    </div>
+    <canvas id="drawCanvas"></canvas>
+
+    <script src="app.js"></script>
+    <script src="app.js">
