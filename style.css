@@ -14,6 +14,12 @@ body, html {
 #drawCanvas {
     display: block;
     touch-action: none; /* CRITICAL: Prevents browser scrolling while drawing */
+
+    /* Center the oversized square */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 /* The Floating Control Panel */
@@ -57,4 +63,10 @@ button:active { background: #555; }
     border: 2px solid #555;
     cursor: pointer;
     padding: 0;
+    transition: transform 0.1s ease, border-color 0.2s ease;
+}
+
+.swatch.active {
+    border-color: #ffffff;
+    transform: scale(1.1); /* Optional: makes the selected swatch pop out slightly! */
 }

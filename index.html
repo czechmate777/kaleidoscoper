@@ -15,7 +15,9 @@
 
 <body>
     <div id="controls">
-        <button id="undoBtn">Undo</button>
+        <button id="saveBtn">Save</button>
+        <button id="undoBtn">↶</button>
+        <button id="redoBtn">↷</button>
         <button id="clearBtn">Clear</button>
 
         <div class="control-group">
@@ -36,13 +38,12 @@
         </div>
 
         <div class="color-picker">
-            <button class="swatch" data-color="#00e5ff" style="background: #00e5ff;"></button>
+            <button class="swatch active" data-color="#00e5ff" style="background: #00e5ff;"></button>
             <button class="swatch" data-color="#ff0055" style="background: #ff0055;"></button>
             <button class="swatch" data-color="#ffaa00" style="background: #ffaa00;"></button>
+            <button class="swatch" data-color="#00ffaa" style="background: #00ffaa;"></button>
             <button class="swatch" data-color="#ffffff" style="background: #ffffff;"></button>
         </div>
-
-        <button id="openColorPicker">Choose Color</button>
     </div>
     <canvas id="drawCanvas"></canvas>
 
