@@ -129,37 +129,54 @@ function draw(e) {
     if (!state.isDrawing) return;
     const [currentX, currentY] = getCoordinates(e);
 
+    // Get pressure from the event; default to 1.0 if not supported
+    const pressure = e.pressure > 0 ? e.pressure : 1.0;
+    
+    // Calculate final line width: base size multiplied by pressure
+    // We add a minimum multiplier (e.g., 0.2) so the line doesn't vanish entirely
+    const dynamicWidth = state.lineWidth * Math.max(pressure, 0.2);
+
     const centerX = elements.canvas.width / 2;
     const centerY = elements.canvas.height / 2;
     const angleStep = (Math.PI * 2) / state.segments;
 
-    // Render loop for kaleidoscope segments
     for (let i = 0; i < state.segments; i++) {
         ctx.save();
         ctx.translate(centerX, centerY);
         ctx.rotate(i * angleStep);
 
-        // Draw standard stroke
-        drawLine(state.lastX - centerX, state.lastY - centerY, currentX - centerX, currentY - centerY);
+        // Pass the calculated dynamicWidth into our draw helper
+        drawPressureLine(
+            state.lastX - centerX, 
+            state.lastY - centerY, 
+            currentX - centerX, 
+            currentY - centerY, 
+            dynamicWidth
+        );
 
-        // Draw mirrored stroke if enabled
         if (state.isMirrored) {
             ctx.scale(1, -1);
-            drawLine(state.lastX - centerX, state.lastY - centerY, currentX - centerX, currentY - centerY);
+            drawPressureLine(
+                state.lastX - centerX, 
+                state.lastY - centerY, 
+                currentX - centerX, 
+                currentY - centerY, 
+                dynamicWidth
+            );
         }
-
         ctx.restore();
     }
 
     [state.lastX, state.lastY] = [currentX, currentY];
 }
 
-function drawLine(x1, y1, x2, y2) {
+// Updated helper that accepts a specific width
+function drawPressureLine(x1, y1, x2, y2, width) {
     ctx.beginPath();
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
     ctx.strokeStyle = state.strokeColor;
-    ctx.lineWidth = state.lineWidth;
+    ctx.lineWidth = width; // Use the dynamic width
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.stroke();
