@@ -10,6 +10,16 @@ body, html {
     color: #ffffff;
 }
 
+/* Hamburger Menu */
+#menuIcon {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    cursor: pointer;
+    font-size: 24px;
+    z-index: 11;
+}
+
 /* The Canvas */
 #drawCanvas {
     display: block;
@@ -23,20 +33,24 @@ body, html {
 }
 
 /* The Floating Control Panel */
-#controls {
+#controlPanel {
     position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
+    top: 0;
+    bottom: 0;
+    left: -300px; /* Initially hidden off-screen */
+    width: 300px;
     background: rgba(30, 30, 30, 0.85);
     backdrop-filter: blur(5px);
-    padding: 15px 25px;
-    border-radius: 12px;
-    display: flex;
-    gap: 20px;
-    align-items: center;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    padding: 15px;
+    border-radius: 0 12px 12px 0;
+    box-shadow: 8px 0 32px rgba(0, 0, 0, 0.5);
     z-index: 10;
+    transition: left 0.3s ease;
+}
+
+/* When the panel is open */
+#controlPanel.open {
+    left: 0;
 }
 
 /* Basic UI Styling */
@@ -47,12 +61,20 @@ button {
     padding: 8px 12px;
     border-radius: 6px;
     cursor: pointer;
+    width: 100%;
+    display: block;
+    margin-bottom: 10px;
 }
 
 button:active { background: #555; }
 
+.control-group {
+    margin-bottom: 10px;
+}
+
 .color-picker {
     display: flex;
+    direction: row;
     gap: 10px;
 }
 

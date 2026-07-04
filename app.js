@@ -30,7 +30,9 @@ const elements = {
     thicknessSlider: document.getElementById('thicknessSlider'),
     thicknessValue: document.getElementById('thicknessValue'),
     mirrorToggle: document.getElementById('mirrorToggle'),
-    swatches: document.querySelectorAll('.swatch')
+    swatches: document.querySelectorAll('.swatch'),
+    controlPanel: document.getElementById('controlPanel'),
+    menuIcon: document.getElementById('menuIcon')
 };
 
 const ctx = elements.canvas.getContext('2d');
@@ -335,6 +337,10 @@ function bindEvents() {
             // Update the global drawing color
             state.strokeColor = newColor;
         }
+    });
+
+    elements.menuIcon.addEventListener('click', () => {
+        elements.controlPanel.classList.toggle('open');
     });
 }
 
