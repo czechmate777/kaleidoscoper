@@ -11,11 +11,15 @@ body, html {
 
 #menuIcon {
     position: fixed;
-    top: 20px;
-    left: 20px;
+    margin: 5px;
+    padding: 10px 13px;
+    top: 0px;
+    left: 0px;
+    border-radius: 10px;
     cursor: pointer;
     font-size: 24px;
     z-index: 11;
+    background: rgba(90, 90, 90, 0.307);
 }
 
 #drawCanvas {
@@ -33,6 +37,8 @@ body, html {
     margin: 5px;
     left: -350px;
     width: 300px;
+    /* height: calc(100% - 10px); */
+    overflow-y: auto;
     background: rgba(30, 30, 30, 0.85);
     backdrop-filter: blur(5px);
     padding: 10px;
@@ -59,11 +65,20 @@ button {
     margin-bottom: 10px;
 }
 
+button:hover {
+    background: #444;
+}
+
 button:active { background: #555; }
 
 .control-group {
     margin-bottom: 10px;
     border-bottom: 1px solid #3d3d3d;
+}
+
+.control-group:last-child {
+    margin-bottom: 0;
+    border-bottom: none;
 }
 
 .control-group label {
@@ -77,14 +92,15 @@ button:active { background: #555; }
 .color-picker {
     display: flex;
     direction: row;
-    gap: 10px;
+    gap: 4px;
 }
 
 .swatch {
-    width: 30px;
-    height: 30px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
-    border: 2px solid #555;
+    margin: 5px;
+    border: 3px solid #555;
     cursor: pointer;
     padding: 0;
     transition: transform 0.1s ease, border-color 0.2s ease;
@@ -93,4 +109,71 @@ button:active { background: #555; }
 .swatch.active {
     border-color: #ffffff;
     transform: scale(1.1);
+}
+
+/* Color Picker Container */
+.picker-container {
+    position: absolute;
+    bottom: 60px;
+    width: calc(100% - 40px);
+    /* height: calc(100% - 90px); */
+    margin-top: 15px;
+    padding: 10px;
+    background: rgb(20, 20, 20);
+    border-radius: 8px;
+    border: 1px solid #3d3d3d;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.3s ease;
+}
+
+.picker-container.hidden {
+    display: none;
+}
+
+/* Color Wheel Wrapper */
+.wheel-wrapper {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    cursor: crosshair;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+#wheelCanvas {
+    border-radius: 50%;
+    display: block;
+}
+
+.wheel-marker {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border: 2px solid #ffffff;
+    box-shadow: 0 0 4px rgba(0,0,0,0.8);
+    border-radius: 50%;
+    pointer-events: none; /* Allows clicks to pass through to the canvas */
+    transform: translate(-50%, -50%);
+    left: 50%;
+    top: 50%;
+    box-sizing: border-box;
+}
+
+/* Brightness Slider Styling */
+.brightness-group {
+    width: 100%;
+}
+
+.brightness-group label {
+    font-size: 12px;
+    color: #aaa;
+    margin-bottom: 4px;
+    display: block;
+}
+
+.brightness-group input[type="range"] {
+    width: 100%;
 }

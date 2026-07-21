@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#00e5ff">
-    <title>Kaleidoscope Studio</title>
+    <title>Kaleidoscoper</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -38,12 +38,26 @@
             </label>
         </div>
 
-        <div class="color-picker">
-            <button class="swatch active" data-color="#00e5ff" style="background: #00e5ff;"></button>
-            <button class="swatch" data-color="#ff0055" style="background: #ff0055;"></button>
-            <button class="swatch" data-color="#ffaa00" style="background: #ffaa00;"></button>
-            <button class="swatch" data-color="#00ffaa" style="background: #00ffaa;"></button>
-            <button class="swatch" data-color="#ffffff" style="background: #ffffff;"></button>
+        <div class="control-group">
+            <label>Color</label>
+            <div class="color-picker">
+                <button class="swatch active" data-color="#00e5ff" style="background: #00e5ff;"></button>
+                <button class="swatch" data-color="#ff0055" style="background: #ff0055;"></button>
+                <button class="swatch" data-color="#ffaa00" style="background: #ffaa00;"></button>
+                <button class="swatch" data-color="#00ffaa" style="background: #00ffaa;"></button>
+                <button class="swatch" data-color="#ffffff" style="background: #ffffff;"></button>
+            </div>
+
+            <div id="pickerContainer" class="picker-container hidden">
+                <div class="wheel-wrapper">
+                    <canvas id="wheelCanvas" width="150" height="150"></canvas>
+                    <div id="wheelMarker" class="wheel-marker"></div>
+                </div>
+                <div class="brightness-group">
+                    <label for="brightnessSlider">Brightness: <span id="brightnessValue">100%</span></label>
+                    <input type="range" id="brightnessSlider" min="0" max="100" value="100">
+                </div>
+            </div>
         </div>
     </div>
     <canvas id="drawCanvas"></canvas>
