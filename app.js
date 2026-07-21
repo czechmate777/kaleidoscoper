@@ -1,5 +1,5 @@
 /**
- * Kaleidoscopee - Main Application Script
+ * Kaleidoscoper - Main Application Script
  */
 
 // --- 1. Application State & Configuration ---
@@ -30,6 +30,8 @@ const elements = {
     // Main UI
     canvas: document.getElementById('drawCanvas'),
     saveBtn: document.getElementById('saveBtn'),
+    loadBtn: document.getElementById('loadBtn'),
+    fileInput: document.getElementById('fileInput'),
     undoBtn: document.getElementById('undoBtn'),
     redoBtn: document.getElementById('redoBtn'),
     clearBtn: document.getElementById('clearBtn'),
@@ -52,7 +54,7 @@ const elements = {
 
 // --- 3. Context Initialization ---
 const ctx = elements.canvas.getContext('2d');
-const wheelCtx = elements.wheelCanvas.getContext('2d');
+const wheelCtx = elements.wheelCanvas?.getContext('2d');
 
 // Disable antialiasing for the main context
 ctx.imageSmoothingEnabled = false;
@@ -186,7 +188,7 @@ function drawPressureLine(x1, y1, x2, y2, width) {
     ctx.stroke();
 }
 
-// --- 6. State Management (Undo & Clear) ---
+// --- 6. State Management & File I/O ---
 function saveState() {
     if (state.undoStack.length >= state.maxUndoSteps) {
         state.undoStack.shift(); 
@@ -240,8 +242,38 @@ function saveImage() {
     document.body.removeChild(downloadLink);
 }
 
+function handleImageLoad(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        const img = new Image();
+        img.onload = function() {
+            // Push current state to undo history before overwriting
+            saveState();
+            
+            ctx.imageSmoothingEnabled = false;
+            ctx.clearRect(0, 0, elements.canvas.width, elements.canvas.height);
+            ctx.fillStyle = state.backgroundColor;
+            ctx.fillRect(0, 0, elements.canvas.width, elements.canvas.height);
+            
+            // Center the loaded image on the canvas
+            const offsetX = (elements.canvas.width - img.width) / 2;
+            const offsetY = (elements.canvas.height - img.height) / 2;
+            ctx.drawImage(img, offsetX, offsetY);
+            
+            // Clear the input so the same file can be loaded again later if desired
+            elements.fileInput.value = '';
+        };
+        img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
 // --- 7. Custom Radial Color Picker Logic ---
 function drawColorWheel() {
+    if (!elements.wheelCanvas) return;
     const width = elements.wheelCanvas.width;
     const height = elements.wheelCanvas.height;
     const cx = width / 2;
@@ -386,8 +418,10 @@ function bindEvents() {
     elements.canvas.addEventListener('pointerup', stopDrawing);
     elements.canvas.addEventListener('pointerout', stopDrawing);
 
-    // UI Buttons
+    // File I/O & History Buttons
     elements.saveBtn?.addEventListener('click', saveImage);
+    elements.loadBtn?.addEventListener('click', () => elements.fileInput?.click());
+    elements.fileInput?.addEventListener('change', handleImageLoad);
     elements.undoBtn?.addEventListener('click', undo);
     elements.redoBtn?.addEventListener('click', redo);
     elements.clearBtn?.addEventListener('click', () => clearCanvas(true));
@@ -443,16 +477,16 @@ function bindEvents() {
         state.isDraggingWheel = false;
     }
 
-    elements.wheelCanvas.addEventListener('mousedown', startWheelDrag);
+    elements.wheelCanvas?.addEventListener('mousedown', startWheelDrag);
     window.addEventListener('mousemove', dragWheel);
     window.addEventListener('mouseup', stopWheelDrag);
 
-    elements.wheelCanvas.addEventListener('touchstart', startWheelDrag, { passive: false });
+    elements.wheelCanvas?.addEventListener('touchstart', startWheelDrag, { passive: false });
     window.addEventListener('touchmove', dragWheel, { passive: false });
     window.addEventListener('touchend', stopWheelDrag);
 
     // Brightness Slider Handler
-    elements.brightnessSlider.addEventListener('input', (e) => {
+    elements.brightnessSlider?.addEventListener('input', (e) => {
         state.currentBrightness = parseInt(e.target.value, 10);
         elements.brightnessValue.innerText = `${state.currentBrightness}%`;
         drawColorWheel();
